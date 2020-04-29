@@ -7,7 +7,6 @@ import torch.nn as nn
 import torch.optim as optim
 from torch.utils.data import DataLoader
 import numpy as np
-# import provider
 
 from dataset import VoxelNetDataset
 from model import MyModel
@@ -21,26 +20,15 @@ parser.add_argument('--model_dir', metavar='M', dest='model_dir', type=str, defa
                     help='Root directory for the saved models to test')
 parser.add_argument('--seed', metavar='S', dest='seed', default=2020,
                     help='Pseudorandom seed')
-# parser.add_argument('--epochs', type=int, default=20, help='Number of epochs to train.')
-# parser.add_argument('--lr', type=float, default=5e-4, help='Learning Rate')
-# # parser.add_argument('--decay_step', type=int, default=200000, help='Decay step for lr decay')
-# parser.add_argument('--decay_rate', type=float, default=0.9, help='Decay rate for lr decay')
-# parser.add_argument('--momentum', metavar='M', type=float, default=0.9, help='Initial learning rate')
-# parser.add_argument('--optimizer', metavar='O', type=str, default='adam', help='Optimizer (default: adam)')
-# parser.add_argument('--batch_size', metavar='B', type=int, default=16, help='Batch Size during training')
-# parser.add_argument('--num_point', type=int, default=1024, help='Max number of points')
 parser.add_argument('-all', action='store_true', help='Test all epochs')
 args = parser.parse_args()
 
 torch.manual_seed(args.seed)
 np.random.seed(args.seed)
 
-# NUM_POINT = args.num_point
 VOXEL_SIZE = [8,16,32]
 
-# TRAIN_DATASET = ModelNetDataset(args.root_dir, npoints=NUM_POINT)
 TEST_DATASET = VoxelNetDataset(args.root_dir, split='test')
-# TRAIN_DATALOADER = DataLoader(TRAIN_DATASET, batch_size=BATCH_SIZE, shuffle=True, num_workers=4)
 TEST_DATALOADER = DataLoader(TEST_DATASET, shuffle=False, num_workers=4)
 
 MODEL = MyModel(len(TEST_DATASET.classes),voxel_size=VOXEL_SIZE, normal_channel=TEST_DATASET.normal_channel)
@@ -55,11 +43,9 @@ def test(model, dataloader, save_dir):
     for j, data in tqdm(enumerate(dataloader), total=len(dataloader)):
         points, target = data
         target = target[:, 0]
-        # points = points.transpose(2, 1)
         model = model.eval()
         pred, _ = model(points)
         pred_choice = pred.data.max(1)[1]
-        # print(target)
 
         for choice, truth in zip(pred_choice, target):
             if choice.eq(truth).data:

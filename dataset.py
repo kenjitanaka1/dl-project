@@ -174,14 +174,6 @@ class VoxelNetDataset(Dataset):
         self.cache_size = cache_size # how many data points to cache in memory
         self.cache = {} # from index to (point_set, cls) tuple
 
-        # if shuffle is None:
-        #     if split == 'train': self.shuffle = True
-        #     else: self.shuffle = False
-        # else:
-        #     self.shuffle = shuffle
-
-        # self.reset()
-
     def __getitem__(self, index):
         if index in self.cache:
             point_set, cls = self.cache[index]
@@ -189,26 +181,13 @@ class VoxelNetDataset(Dataset):
             fn = self.datapath[index]
             cls = self.classes[self.datapath[index][0]]
             cls = np.array([cls]).astype(np.int32)
-            point_set = torch.load(fn[1])#np.loadtxt(fn[1], delimiter=',', dtype=np.float32)
-            # Take the first npoints
-            # print(point_set.shape)
-            # point_set = point_set[0:self.npoints,:]
-            # if self.normalize:
-            #     point_set[:,0:3] = pc_normalize(point_set[:,0:3])
-            # if not self.normal_channel:
-            #     point_set = point_set[:,0:3]
+            point_set = torch.load(fn[1])
             if len(self.cache) < self.cache_size:
                 self.cache[index] = (point_set, cls)
         return point_set, cls
 
     def __len__(self):
         return len(self.datapath)
-
-    # def num_channel(self):
-    #     if self.normal_channel:
-    #         return 6
-    #     else:
-    #         return 3
 
 if __name__ == '__main__':
     modelnet_dir = 'modelnet40_normal_resampled'

@@ -7,7 +7,6 @@ import torch.nn as nn
 import torch.optim as optim
 from torch.utils.data import DataLoader
 import numpy as np
-# import provider
 
 from dataset import VoxelNetDataset
 from model import MyModel
@@ -19,7 +18,6 @@ parser.add_argument('--seed', metavar='S', dest='seed', default=2020,
                     help='Pseudorandom seed')
 parser.add_argument('--epochs', type=int, default=20, help='Number of epochs to train.')
 parser.add_argument('--lr', type=float, default=5e-4, help='Learning Rate')
-# parser.add_argument('--decay_step', type=int, default=200000, help='Decay step for lr decay')
 parser.add_argument('--decay_rate', type=float, default=0.9, help='Decay rate for lr decay')
 parser.add_argument('--momentum', metavar='M', type=float, default=0.9, help='Initial learning rate')
 parser.add_argument('--optimizer', metavar='O', type=str, default='adam', help='Optimizer (default: adam)')
@@ -36,14 +34,11 @@ BATCH_SIZE = args.batch_size
 NUM_POINT = args.num_point
 LEARNING_RATE = args.lr
 LR_DECAY_RATE = args.decay_rate
-# LR_DECAY_STEP = args.decay_step
 LOSS_CRITERION = nn.CrossEntropyLoss()
 VOXEL_SIZE = [8,16,32]
 
 TRAIN_DATASET = VoxelNetDataset(args.root_dir, cache_size=4000)
-# TEST_DATASET = VoxelNetDataset(args.root_dir, split='test')
 TRAIN_DATALOADER = DataLoader(TRAIN_DATASET, batch_size=BATCH_SIZE, shuffle=True, num_workers=0)
-# TEST_DATALOADER = DataLoader(TEST_DATASET, shuffle=False, num_workers=4)
 
 MODEL = MyModel(len(TRAIN_DATASET.classes),voxel_size=VOXEL_SIZE, normal_channel=TRAIN_DATASET.normal_channel)
 MODEL_SAVE_DIR = 'saved_models'
@@ -73,25 +68,14 @@ def train(model, optimizer, lr_scheduler, criterion, dataloader, save_dir, e0, e
         for batch_id, data in tqdm(enumerate(dataloader, 0), total=len(dataloader), smoothing=0.9):
             points, target = data
 
-            # print(type(points[0]))
-            # print(len(points))
-            # print(len(points[0]))
-            # points = points.data.numpy()
-            # points = provider.random_point_dropout(points)
-            # points[:,:, 0:3] = provider.random_scale_point_cloud(points[:,:, 0:3])
-            # points[:,:, 0:3] = provider.shift_point_cloud(points[:,:, 0:3])
-            # points = torch.Tensor(points)
             target = target[:, 0]
 
-            # points = points.transpose(2, 1)
             optimizer.zero_grad()
 
             model = model.train()
             pred, trans_feat = model(points)
             loss = criterion(pred, target.long())
             pred_choice = pred.data.max(1)[1]
-            # print(pred_choice.shape)
-            # print(pred_choice.eq(target.long().data).shape)
             correct = pred_choice.eq(target.long().data).cpu().sum()
             mean_correct.append(correct.item() / float(len(target)))
             mean_loss.append(loss.detach().numpy())
